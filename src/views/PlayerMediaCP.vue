@@ -17,12 +17,12 @@
                     <v-select v-model="selectedPlayer" :items="players" item-text="name" item-value="_id">
                         <template v-slot:item="data">
                             <div class="mx-auto">
-                                    <div>
-                                        <span>{{ data.item.name }}</span>
-                                        <span>
-                                            <v-icon x-large :color="data.item.isConnected ? 'success' : 'error'">mdi-circle-small</v-icon>
-                                        </span>
-                                    </div>
+                                <div>
+                                    <span>{{ data.item.name }}</span>
+                                    <span>
+                                        <v-icon x-large :color="data.item.isConnected ? 'success' : 'error'">mdi-circle-small</v-icon>
+                                    </span>
+                                </div>
                             </div>
                         </template>
                     </v-select>
@@ -36,9 +36,13 @@
             <v-card-actions class="mt-2">
                 <div class="mx-auto">
                     <div class="text-body-2">Infotext</div>
-                    <v-text-field>
-
+                    <v-text-field v-model="infoText">
                     </v-text-field>
+                    <v-btn @click="removeInfo">
+                        <v-icon color="grey darken-2">
+                            mdi-delete
+                        </v-icon>
+                    </v-btn>
                 </div>
             </v-card-actions>
             <v-card-actions>
@@ -95,7 +99,8 @@ export default {
             players: [],
             sent: false,
             isChanged: false,
-            groupChangeMessage: ""
+            groupChangeMessage: "",
+            infoText: null
         }
 
     },
@@ -182,14 +187,23 @@ export default {
                 group: {
                     "_id": this.selectedGroup,
                     name: this.getGroupName,
-                }
+                },
+
             }, {
                 auth: {
                     username: "pi",
                     password: "pi"
                 }
+
             }).then((resp) => {
                 if (resp.status == 200) {
+                    if (this.infoText != null) {
+                        this.updateInfo()
+                        console.log("Text" + this.infoText + "wird nun auf Infotafel angezeigt!")
+                    }else {
+                        console.log("Kein Text vorhanden!")
+                        this.removeInfo()
+                    }
                     this.isChanged = true
                     this.groupChangeMessage = "Player: " + this.getPlayerName() + " group changed successfully!"
                     this.sent = true
@@ -200,6 +214,34 @@ export default {
                 this.sent = true
             })
         },
+
+        updateInfo() {
+            axios.post('http://172.17.0.20:3000/api/groups/' + this.selectedGroup, {
+                emergencyMessage: {
+                    enable: true,
+                    msg: this.info
+                },
+            }, {
+                auth: {
+                    username: "pi",
+                    password: "pi"
+                }
+            })
+        },
+
+        removeInfo() {
+            axios.post('http://172.17.0.20:3000/api/groups/' + this.selectedGroup, {
+                emergencyMessage: {
+                    enable: false,
+                },
+            }, {
+                auth: {
+                    username: "pi",
+                    password: "pi"
+                }
+            })
+        },
+
         getPlayerName() {
             for (let index in this.players) {
                 if (this.players[index]._id == this.selectedPlayer)

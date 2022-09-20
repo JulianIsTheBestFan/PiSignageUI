@@ -16,7 +16,7 @@
                     <v-card-text class="mt-2">
                         <div>
                             <!-- <div class="text-body-2">Playlist</div> -->
-                            <v-autocomplete v-model="selectedPlaylist" outlined dense label="Playlist" :items="playlists" item-text="name" item-value="name"></v-autocomplete>
+                            <v-select v-model="selectedPlaylist" outlined dense label="Playlist" :items="playlists" item-text="name" item-value="name" @change="getPlaylistAssets"></v-select>
                         </div>
                     </v-card-text>
                 </v-card>
@@ -26,32 +26,46 @@
                     <v-card-text>
                         <v-row>
                             <v-col class="pt-0">
-                                <v-card  elevation="0">
+                                <v-card elevation="0">
                                     <v-card-title>
                                         All assets
                                     </v-card-title>
-                                        <div style="border: 0.5px solid black; background-color:#d3d3d3;max-height:600px;height:600px;overflow-y:auto;overflow-x:hidden" class="rounded px-12">
-                                            <draggable class="list-group" :list="allAssets" group="assets" style="max-height:600px;height:600px;">
-                                                <v-card class="mt-4 item" v-for="(asset, index) in allAssets" :key="index">
-                                                    <v-card-text>{{asset.name}}</v-card-text>
-                                                </v-card>
-                                            </draggable>
-                                        </div>
+                                    <div style="border: 0.5px solid black; background-color:#d3d3d3;max-height:600px;height:600px;overflow-y:auto;overflow-x:hidden" class="rounded px-12">
+                                        <draggable class="list-group" :list="allAssets" group="assets" style="max-height:600px;height:600px;">
+                                            <v-card class="mt-4 item rounded" v-for="(asset, index) in allAssets" :key="index">
+                                                <v-card-text>{{asset.name}}</v-card-text>
+                                            </v-card>
+                                        </draggable>
+                                    </div>
                                 </v-card>
                             </v-col>
                             <v-divider vertical></v-divider>
                             <v-col class="pt-0">
-                                <v-card  elevation="0">
+                                <v-card elevation="0">
                                     <v-card-title>
                                         Selected assets
                                     </v-card-title>
-                                        <div style="border: 0.5px solid black; background-color:#d3d3d3;max-height:600px;height:600px;overflow-y:auto;overflow-x:hidden" class="rounded px-12">
-                                            <draggable class="list-group" :list="selectedAssets" group="assets" style="max-height:600px;height:600px;">
-                                                <v-card class="mt-4 item" v-for="(asset, index) in selectedAssets" :key="index">
-                                                    <v-card-text>{{asset.name}}</v-card-text>
-                                                </v-card>
-                                            </draggable>
-                                        </div>
+                                    <div style="border: 0.5px solid black; background-color:#d3d3d3;max-height:600px;height:600px;overflow-y:auto;overflow-x:hidden" class="rounded px-12">
+                                        <draggable class="list-group" :list="selectedAssets" group="assets" style="max-height:600px;height:600px;">
+                                            <v-card class="mt-4 item rounded" v-for="(asset, index) in selectedAssets" :key="index">
+                                                <v-card-text>
+                                                    <v-row>
+                                                        <!-- <v-col>
+                                                            <div>
+                                                                <v-img :src="asset.thumbnail ? 'http://172.17.0.20:3000'+asset.thumbnail : ''"></v-img>
+                                                            </div>
+                                                        </v-col> -->
+                                                        <v-col><span>{{asset.name ? asset.name : asset.filename}}</span></v-col>
+                                                    </v-row>
+                                                </v-card-text>
+                                                <div class="">
+                                                    <div class="mx-auto" style="width:100px">
+                                                        <v-text-field v-model="asset.duration" type="number" outlined dense width="30px" label="Duration"></v-text-field>
+                                                    </div>
+                                                </div>
+                                            </v-card>
+                                        </draggable>
+                                    </div>
                                 </v-card>
                             </v-col>
                         </v-row>
@@ -109,6 +123,17 @@ export default {
             }).catch((err) => {
                 console.log(err)
             })
+        },
+        getPlaylistAssets() {
+            let assets = []
+            for (let index in this.playlists) {
+                if (this.selectedPlaylist == this.playlists[index].name){
+                    for(let index2 in this.allAssets){
+                        if(this.allAssets[index2].name in index)
+                        this.selectedAssets = this.playlists[index].assets
+                    }
+                }
+            }
         }
     },
 
@@ -129,5 +154,6 @@ export default {
 .item:hover {
     transform: scale(1.1, 1.1);
 }
+
 /* Cool hovering effect */
 </style>
