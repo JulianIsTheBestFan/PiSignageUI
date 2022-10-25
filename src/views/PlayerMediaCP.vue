@@ -32,19 +32,31 @@
                     <v-select v-model="selectedGroup" :items="groups" item-text="Pname" item-value="Pid">
                     </v-select>
                 </div>
-            </v-card-text>
-            <v-card-actions class="mt-2">
                 <div class="mx-auto">
-                    <div class="text-body-2">Infotext</div>
-                    <v-text-field v-model="infoText">
-                    </v-text-field>
-                    <v-btn @click="removeInfo">
-                        <v-icon color="grey darken-2">
-                            mdi-delete
-                        </v-icon>
-                    </v-btn>
+                    <div>
+                        <div class="text-body-2">Info Text</div>
+                        <div class="d-flex justify-center">
+                            <div>
+                                <v-btn class="mt-4" icon @click="updateGroup(removeInfo)">
+                                    <v-icon color="grey darken-2">
+                                        mdi-delete
+                                    </v-icon>
+                                </v-btn>
+                            </div>
+                            <div>
+                                <v-text-field v-model="infoText">
+                                </v-text-field>
+                            </div>
+                            <div>
+                                <div sm="6" class="ml-5" style="width: 100px">
+                                    <v-select v-model="selectedPos" :items="InfoPos" item-text="name" return-object>
+                                    </v-select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </v-card-actions>
+            </v-card-text>
             <v-card-actions>
                 <v-btn class="mx-auto" @click="postBack">
                     <v-icon large color="grey darken-2">
@@ -63,7 +75,7 @@
                 </v-btn>
             </v-card-actions>
             <v-card-actions class="mt-2">
-                <v-btn block class="mx-auto" @click="updateGroup">
+                <v-btn block class="mx-auto" @click="updateGroup(updateInfo)">
                     <v-icon large color="grey darken-2">
                         mdi-cast-variant
                     </v-icon>
@@ -100,7 +112,20 @@ export default {
             sent: false,
             isChanged: false,
             groupChangeMessage: "",
-            infoText: null
+            infoText: null,
+            selectedPos: "Middle",
+
+            InfoPos: [{
+                    name: 'Top'
+                },
+                {
+                    name: 'Middle'
+                },
+                {
+                    name: 'Bottom'
+                },
+            ],
+
         }
 
     },
@@ -148,8 +173,7 @@ export default {
                     if (Data[i].name) {
                         groups.push({
                             Pname: Data[i].name,
-                            Pid: Data[i]._id
-
+                            Pid: Data[i]._id,
                         })
                     }
                 }
@@ -182,57 +206,57 @@ export default {
             )
 
         },
-        updateGroup() {
-            axios.post('http://172.17.0.20:3000/api/players/' + this.selectedPlayer, {
-                group: {
-                    "_id": this.selectedGroup,
-                    name: this.getGroupName,
-                },
+        updateGroup(infoMethod) {
+            infoMethod().then(() => {
+                axios.post('http://172.17.0.20:3000/api/players/' + this.selectedPlayer, {
+                    group: {
+                        "_id": this.selectedGroup,
+                        name: this.getGroupName,
+                    },
 
-            }, {
-                auth: {
-                    username: "pi",
-                    password: "pi"
-                }
-
-            }).then((resp) => {
-                if (resp.status == 200) {
-                    if (this.infoText != null) {
-                        this.updateInfo()
-                        console.log("Text" + this.infoText + "wird nun auf Infotafel angezeigt!")
-                    }else {
-                        console.log("Kein Text vorhanden!")
-                        this.removeInfo()
+                }, {
+                    auth: {
+                        username: "pi",
+                        password: "pi"
                     }
-                    this.isChanged = true
-                    this.groupChangeMessage = "Player: " + this.getPlayerName() + " group changed successfully!"
-                    this.sent = true
-                }
 
-            }).catch((err) => {
-                this.groupChangeMessage = err
-                this.sent = true
+                }).then((resp) => {
+                    if (resp.status == 200) {
+                        this.isChanged = true
+                        this.groupChangeMessage = "Player: " + this.getPlayerName() + " group changed successfully!"
+                        this.sent = true
+                    }
+
+                }).catch((err) => {
+                    this.groupChangeMessage = err
+                    this.sent = true
+                })
             })
+
         },
 
         updateInfo() {
-            axios.post('http://172.17.0.20:3000/api/groups/' + this.selectedGroup, {
+            return axios.post('http://172.17.0.20:3000/api/groups/' + this.selectedGroup, {
                 emergencyMessage: {
                     enable: true,
-                    msg: this.info
+                    msg: this.infoText,
+                    vPos: this.selectedPos
                 },
             }, {
                 auth: {
                     username: "pi",
                     password: "pi"
                 }
+            }).then(() => {
+                console.log(this.selectedPos)
             })
         },
 
         removeInfo() {
-            axios.post('http://172.17.0.20:3000/api/groups/' + this.selectedGroup, {
+            return axios.post('http://172.17.0.20:3000/api/groups/' + this.selectedGroup, {
                 emergencyMessage: {
                     enable: false,
+                    msg: '',
                 },
             }, {
                 auth: {
@@ -254,6 +278,7 @@ export default {
                     return this.groups[index].Pname
             }
         }
+
     },
     mounted() {
         this.getPlayerNames()

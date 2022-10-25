@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import PlayerMediaCP from '../views/PlayerMediaCP.vue'
 import PlaylistManager from '../views/PlaylistManager.vue'
+import AssetManager from '../views/AssetManager.vue'
 
 Vue.use(VueRouter)
 
@@ -20,7 +21,7 @@ const routes = [
   {
     path: '/upload',
     name: 'AssetManager',
-    component: PlayerMediaCP
+    component: AssetManager
   },
 
 ]
